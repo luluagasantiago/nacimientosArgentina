@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Nacimientos Argentina</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+  </head>
+  <body>
+    <h1>Nacimientos en Argentina por provincia entre 2012 y 2022</h1>
+    <canvas id="myChart" width="400" height="200"></canvas>
+
+    <script>
+      // Data from:https://datos.gob.ar/dataset/renaper-nacimientos-argentina/archivo/renaper_6.1
+
+      window.addEventListener('load', plot);
+      // TEST
+      async function plot() {
+        const ctx = document.getElementById('myChart').getContext('2d');
+        const data = await getBirthsData()
+        const datasets = await Object.keys(data).map(year => ({
+          label: `Births in ${year}`,
+          data: data[year].births,
+          backgroundColor: `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 0.5)`, // Random color for each dataset
+          borderColor: `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 1)`, // Border color
+          borderWidth: 1,
+          hidden: year !== '2022' // Hide all years except 2022 initially
+        }));
+
+        const chartData = {
+          labels: data['2022'].provinces, // Assuming provinces structure is the same for all years
+          datasets: datasets
+        };
+
+        const myChart = new Chart(ctx, {
+          type: 'line',
+          data: chartData,
+          options: {
+            scales: {
+              y: {
+                beginAtZero: true // Start y-axis at zero
+              }
+            }
+          }
+        });
+
+              }
+
+
+      // TEST
+      
+      getBirthsData().then( data =>{
+        console.log(data)
+      }
+      )
+
+    
+
+      async function getBirthsData(){
+        const response = await fetch('nacimientos-argentina-2012-2022.csv');
+        const data = await response.text();
+        const rows = data.split('\n').slice(1);
+        let years_dict = {};
+        
+        for(let row of rows){
+          const cols = row.split(',');
+
+          if(!years_dict[cols[0]]){
+            years_dict[cols[0]] = {provinces: [],
+                                  births: []}
+          }
+        
+          years_dict[cols[0]].provinces.push(cols[1])
+          years_dict[cols[0]].births.push(cols[3])
+        }
+        return years_dict
+      }
+    </script>
+  </body>
+</html>
+
